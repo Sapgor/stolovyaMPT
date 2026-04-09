@@ -1,0 +1,10 @@
+{% extends 'orders/base.html' %}
+{% block content %}
+<h2>{{ title }}</h2>
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Сохранить</button>
+    <a href="{% url 'db_admin_users' %}">Отмена</a>
+</form>
+{% endblock %}

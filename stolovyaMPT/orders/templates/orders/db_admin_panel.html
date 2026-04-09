@@ -1,0 +1,9 @@
+{% extends 'orders/base.html' %}
+{% block content %}
+<h2>Панель администратора БД</h2>
+<ul>
+    <li><a href="{% url 'db_admin_users' %}">Пользователи</a></li>
+    <li><a href="{% url 'db_admin_menu_items' %}">Блюда</a></li>
+    <li><a href="{% url 'db_admin_orders' %}">Заказы</a></li>
+</ul>
+{% endblock %}

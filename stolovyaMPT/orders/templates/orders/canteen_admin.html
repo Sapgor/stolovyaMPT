@@ -1,0 +1,10 @@
+{% extends 'orders/base.html' %}
+
+{% block content %}
+<h2>Панель администратора столовой</h2>
+<ul>
+    <li><a href="{% url 'profile' %}">Профиль</a></li>
+    <li><a href="{% url 'orders' %}">Окно заказов</a></li>
+    <li><a href="{% url 'menu' %}">Окно меню</a></li>
+</ul>
+{% endblock %}

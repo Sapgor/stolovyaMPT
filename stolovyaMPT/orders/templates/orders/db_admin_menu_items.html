@@ -1,0 +1,17 @@
+{% extends 'orders/base.html' %}
+{% block content %}
+<h2>Блюда</h2>
+<a href="{% url 'db_admin_create_menu_item' %}">+ Создать</a>
+{% for item in items %}
+<div>
+    <h4>{{ item.name }}</h4>
+    {% if item.image %}
+        <img src="{{ item.image.url }}" style="max-width:100px;">
+    {% endif %}
+    <p>{{ item.description }}</p>
+    <p>{{ item.price }} ₽ | Остаток: {{ item.stock }}</p>
+    <a href="{% url 'db_admin_edit_menu_item' item.id %}">Редактировать</a>
+    <a href="{% url 'db_admin_delete_menu_item' item.id %}" style="color: red;">Удалить</a>
+</div>
+{% endfor %}
+{% endblock %}

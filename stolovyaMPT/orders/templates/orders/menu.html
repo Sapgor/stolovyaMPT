@@ -1,0 +1,43 @@
+{% extends 'orders/base.html' %}
+
+{% block content %}
+<div class="menu-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 20px;">
+    <h2>Меню столовой</h2>
+    {% if user.is_authenticated %}
+        <a href="{% url 'profile' %}" class="btn">Профиль</a>
+    {% endif %}
+</div>
+
+{% if items %}
+    {% for item in items %}
+        <div class="menu-item">
+            <h4>{{ item.name }}</h4>
+
+            {% if item.image %}
+                <img src="{{ item.image.url }}" alt="{{ item.name }}">
+            {% endif %}
+
+            <p>{{ item.description }}</p>
+            <p><strong>{{ item.price }} ₽</strong></p>
+
+            {% if user.user_type == 'canteen_admin' %}
+                <p class="text-muted">Остаток: {{ item.stock }} шт.</p>
+            {% endif %}
+
+            {% if user.is_authenticated and user.user_type == 'customer' %}
+                {% if item.stock > 0 %}
+                    <form method="post" action="{% url 'place_order' item.id %}">
+                        {% csrf_token %}
+                        <input type="number" name="quantity" value="1" min="1" max="{{ item.stock }}">
+                        <button type="submit" class="btn-success">Заказать</button>
+                    </form>
+                {% else %}
+                    <span class="text-danger">❌ Нет в наличии</span>
+                {% endif %}
+            {% endif %}
+        </div>
+    {% endfor %}
+{% else %}
+    <p>Меню пока пусто.</p>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends 'orders/base.html' %}
+{% block content %}
+<h2>Удалить "{{ obj }}"?</h2>
+<form method="post">
+    {% csrf_token %}
+    <button type="submit">Да, удалить</button>
+    <a href="{% url cancel_url %}">Отмена</a>
+</form>
+{% endblock %}

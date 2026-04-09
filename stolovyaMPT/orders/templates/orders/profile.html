@@ -1,0 +1,29 @@
+{% extends 'orders/base.html' %}
+
+{% block content %}
+<h2>Профиль</h2>
+<p>Имя пользователя: {{ user.username }}</p>
+<p>Email: {{ user.email }}</p>
+
+<a href="{% url 'menu' %}" class="btn">Вернуться в меню</a>
+
+{% if user.user_type == 'customer' %}
+    <a href="{% url 'orders' %}" class="btn" style="background: #28a745;">Мои заказы</a>
+{% endif %}
+
+{% if user.user_type == 'canteen_admin' %}
+    <a href="{% url 'orders' %}" class="btn" style="background: #ffc107; color: black;">Все заказы</a>
+{% endif %}
+
+{% if user.is_superuser %}
+    <a href="{% url 'db_admin_panel' %}" class="btn" style="background: #6f42c1; color: white;">
+        Панель администратора БД
+    </a>
+{% endif %}
+
+<form method="post" action="{% url 'logout' %}" style="display: inline; margin-left: 10px;">
+    {% csrf_token %}
+    <button type="submit" style="color: red; background: none; border: none; cursor: pointer;">Выйти</button>
+</form>
+
+{% endblock %}

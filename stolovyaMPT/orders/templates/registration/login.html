@@ -1,0 +1,27 @@
+{% extends 'orders/base.html' %}
+
+{% block content %}
+<h2>Вход</h2>
+
+{% if form.errors %}
+    {% if "axes" in form.errors %}
+        <div style="color: red; background-color: #ffebee; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+            ❌ Слишком много неудачных попыток входа!<br>
+            Попробуйте снова через 1 час.
+        </div>
+    {% else %}
+        <div style="color: red; background-color: #ffebee; padding: 10px; border-radius: 4px; margin-bottom: 15px;">
+            Пожалуйста, исправьте ошибки ниже:<br>
+            {{ form.non_field_errors }}
+        </div>
+    {% endif %}
+{% endif %}
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Войти</button>
+</form>
+
+<p><a href="{% url 'register' %}">Зарегистрироваться</a></p>
+{% endblock %}

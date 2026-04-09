@@ -1,0 +1,18 @@
+{% extends 'orders/base.html' %}
+{% block content %}
+<h2>Заказы</h2>
+{% for order in orders %}
+<div>
+    <p>Заказ #{{ order.id }} — {{ order.customer.username }}</p>
+    <p>Статус: {{ order.status }}</p>
+    <ul>
+        {% for oi in order.orderitem_set.all %}
+            <li>{{ oi.menu_item.name }} ({{ oi.quantity }} шт.)</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'db_admin_toggle_order_status' order.id %}">
+        {% if order.status == 'ожидается' %}Выдан{% else %}Ожидается{% endif %}
+    </a>
+</div>
+{% endfor %}
+{% endblock %}

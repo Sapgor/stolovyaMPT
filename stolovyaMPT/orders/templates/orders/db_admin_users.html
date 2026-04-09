@@ -1,0 +1,22 @@
+<!-- orders/templates/orders/db_admin_users.html -->
+{% extends 'orders/base.html' %}
+{% block content %}
+<h2>Пользователи</h2>
+<a href="{% url 'db_admin_create_user' %}" class="btn">+ Создать пользователя</a>
+<table class="table">
+    <thead><tr><th>Имя</th><th>Email</th><th>Роль</th><th>Действия</th></tr></thead>
+    <tbody>
+        {% for u in users %}
+        <tr>
+            <td>{{ u.username }}</td>
+            <td>{{ u.email }}</td>
+            <td>{{ u.get_user_type_display }}</td>
+            <td>
+                <a href="{% url 'db_admin_edit_user' u.id %}">Редактировать</a> |
+                <a href="{% url 'db_admin_delete_user' u.id %}" class="text-danger">Удалить</a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

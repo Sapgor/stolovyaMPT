@@ -1,0 +1,9 @@
+{% extends 'orders/base.html' %}
+
+{% block content %}
+<div class="error-card" style="text-align: center; padding: 40px;">
+    <h2 style="color: #d32f2f;">⚠️ Слишком много запросов</h2>
+    <p>Вы превысили лимит запросов. Пожалуйста, подождите 60 секунд перед повторной попыткой.</p>
+    <a href="{% url 'menu' %}" class="btn">Вернуться в меню</a>
+</div>
+{% endblock %}
