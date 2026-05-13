@@ -1,0 +1,491 @@
+{% extends 'orders/base.html' %}
+{% load static %}
+
+{% block title %}Рекомендации - {% endblock %}
+
+{% block content %}
+<div class="recommendations-page">
+    <div class="page-header">
+        <h1 class="page-title">🎯 Персональные рекомендации</h1>
+        <p class="page-subtitle">Блюда, подобранные специально для вас на основе предпочтений всех покупателей</p>
+    </div>
+
+    {% if recommendations %}
+        <div class="recommendations-grid">
+            {% for rec in recommendations %}
+                <div class="recommendation-card">
+                    <div class="recommendation-header">
+                        <div class="recommendation-score">
+                            <span class="score-label">Релевантность</span>
+                            <span class="score-value">{{ rec.score|floatformat:2 }}</span>
+                        </div>
+                        <div class="recommendation-reason">
+                            <span class="reason-icon">💡</span>
+                            <span class="reason-text">{{ rec.reason }}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-content">
+                        <div class="item-image">
+                            {% if rec.menu_item.image %}
+                                <img src="{{ rec.menu_item.image.url }}" alt="{{ rec.menu_item.name }}">
+                            {% else %}
+                                <div class="no-image">
+                                    🍽
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="item-info">
+                            <h3 class="item-name">{{ rec.menu_item.name }}</h3>
+                            <p class="item-description">{{ rec.menu_item.description|truncatewords:15 }}</p>
+                            
+                            <div class="item-details">
+                                <div class="item-price">
+                                    <span class="price-label">Цена:</span>
+                                    <span class="price-value">{{ rec.menu_item.price }} ₽</span>
+                                </div>
+                                
+                                <div class="item-stock">
+                                    <span class="stock-label">В наличии:</span>
+                                    <span class="stock-value {% if rec.menu_item.stock > 0 %}in-stock{% else %}out-of-stock{% endif %}">
+                                        {{ rec.menu_item.stock }} шт.
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="recommendation-actions">
+                        <a href="{% url 'place_order' rec.menu_item.id %}" class="btn btn-primary">
+                            🛒 Заказать
+                        </a>
+                        <button class="btn btn-secondary" onclick="toggleFavorite({{ rec.menu_item.id %})">
+                            ❤️ В избранное
+                        </button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-recommendations">
+            <div class="empty-icon">🤔</div>
+            <h3>Пока нет рекомендаций</h3>
+            <p>Сделайте несколько заказов, и мы подберем для вас персональные рекомендации!</p>
+            <a href="{% url 'menu' %}" class="btn btn-primary">
+                📋 Перейти к меню
+            </a>
+        </div>
+    {% endif %}
+
+    {% if popular_items or trending_items %}
+        <div class="additional-sections">
+            {% if popular_items %}
+                <div class="section">
+                    <h2 class="section-title">🔥 Самое популярное</h2>
+                    <div class="popular-grid">
+                        {% for popular in popular_items %}
+                            <div class="popular-card">
+                                <div class="popular-image">
+                                    {% if popular.menu_item.image %}
+                                        <img src="{{ popular.menu_item.image.url }}" alt="{{ popular.menu_item.name }}">
+                                    {% else %}
+                                        <div class="no-image">🍽</div>
+                                    {% endif %}
+                                </div>
+                                <div class="popular-info">
+                                    <h4>{{ popular.menu_item.name }}</h4>
+                                    <div class="popular-stats">
+                                        <span class="order-count">{{ popular.order_count }} заказов</span>
+                                        <span class="revenue">{{ popular.revenue }} ₽</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'popular_items' %}" class="btn btn-outline">
+                        Смотреть все популярные блюда
+                    </a>
+                </div>
+            {% endif %}
+
+            {% if trending_items %}
+                <div class="section">
+                    <h2 class="section-title">📈 Тренды последних дней</h2>
+                    <div class="trending-grid">
+                        {% for item in trending_items %}
+                            <div class="trending-card">
+                                <div class="trending-image">
+                                    {% if item.image %}
+                                        <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                                    {% else %}
+                                        <div class="no-image">🍽</div>
+                                    {% endif %}
+                                </div>
+                                <div class="trending-info">
+                                    <h4>{{ item.name }}</h4>
+                                    <div class="trending-badge">🔥 В тренде</div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <a href="{% url 'trending_items' %}" class="btn btn-outline">
+                        Смотреть все тренды
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+
+<script>
+function toggleFavorite(itemId) {
+    fetch(`/toggle-favorite/${itemId}/`, {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showToast(data.message, 'success');
+            // Обновляем UI без перезагрузки страницы
+            event.target.textContent = data.is_favorited ? '❤️ В избранном' : '❤️ В избранное';
+            event.target.classList.toggle('favorited');
+        }
+    })
+    .catch(error => {
+        showToast('Ошибка при добавлении в избранное', 'error');
+    });
+}
+
+// Автоматическое обновление рекомендаций каждые 5 минут
+setInterval(() => {
+    fetch('/update-recommendations/', {
+        method: 'POST',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(response => response.text())
+    .then(html => {
+        // Обновляем только сетку рекомендаций
+        const grid = document.querySelector('.recommendations-grid');
+        if (grid && html.trim()) {
+            grid.innerHTML = html;
+            showToast('Рекомендации обновлены', 'success');
+        }
+    })
+    .catch(error => {
+        console.error('Ошибка обновления рекомендаций:', error);
+    });
+}, 300000); // 5 минут
+</script>
+
+<style>
+.recommendations-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.page-header {
+    text-align: center;
+    margin-bottom: 40px;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+}
+
+.page-subtitle {
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    margin: 0;
+}
+
+.recommendations-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 25px;
+    margin-bottom: 60px;
+}
+
+.recommendation-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.recommendation-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    border-color: var(--primary-color);
+}
+
+.recommendation-header {
+    padding: 15px 20px;
+    background: var(--hover-bg);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.recommendation-score {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.score-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.score-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.recommendation-reason {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.reason-icon {
+    font-size: 1.2rem;
+}
+
+.reason-text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.recommendation-content {
+    padding: 20px;
+    display: flex;
+    gap: 20px;
+}
+
+.item-image {
+    width: 120px;
+    height: 120px;
+    flex-shrink: 0;
+}
+
+.item-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.no-image {
+    width: 100%;
+    height: 100%;
+    background: var(--hover-bg);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: var(--text-secondary);
+}
+
+.item-info {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.item-name {
+    font-size: 1.3rem;
+    color: var(--text-color);
+    margin-bottom: 8px;
+}
+
+.item-description {
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin-bottom: 15px;
+}
+
+.item-details {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.item-price, .item-stock {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.price-label, .stock-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.price-value {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.stock-value.in-stock {
+    color: var(--success-color);
+}
+
+.stock-value.out-of-stock {
+    color: var(--error-color);
+}
+
+.recommendation-actions {
+    padding: 20px;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    gap: 10px;
+}
+
+.empty-recommendations {
+    text-align: center;
+    padding: 60px 20px;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}
+
+.additional-sections {
+    margin-top: 60px;
+}
+
+.section {
+    margin-bottom: 40px;
+}
+
+.section-title {
+    font-size: 1.8rem;
+    color: var(--text-color);
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.popular-grid, .trending-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.popular-card, .trending-card {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 15px;
+    transition: all 0.3s ease;
+}
+
+.popular-card:hover, .trending-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.popular-image, .trending-image {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 10px;
+}
+
+.popular-image img, .trending-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 6px;
+}
+
+.popular-info, .trending-info {
+    position: relative;
+}
+
+.popular-info h4, .trending-info h4 {
+    font-size: 1rem;
+    color: var(--text-color);
+    margin-bottom: 8px;
+}
+
+.popular-stats {
+    display: flex;
+    gap: 15px;
+    font-size: 0.9rem;
+}
+
+.order-count {
+    color: var(--primary-color);
+    font-weight: 600;
+}
+
+.revenue {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+.trending-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background: var(--error-color);
+    color: white;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+@media (max-width: 768px) {
+    .recommendations-page {
+        padding: 10px;
+    }
+    
+    .recommendations-grid {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+    
+    .recommendation-content {
+        flex-direction: column;
+        gap: 15px;
+    }
+    
+    .item-image {
+        width: 100%;
+        height: 200px;
+    }
+    
+    .popular-grid, .trending-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 10px;
+    }
+    
+    .recommendation-actions {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

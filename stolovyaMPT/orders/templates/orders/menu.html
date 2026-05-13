@@ -1,0 +1,1279 @@
+{% extends 'orders/base.html' %}
+
+{% block title %}Меню — Столовая МПТ{% endblock %}
+
+{% block content %}
+{% load static %}
+{% load review_tags %}
+
+<style>
+    /* Override container and main-card for menu page */
+    .container {
+        width: 70% !important;
+        max-width: 2200px !important;
+        padding: 20px !important;
+    }
+    
+    .main-card {
+        width: 100% !important;
+        max-width: none !important;
+        padding: 0 !important;
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .menu-wrapper {
+        width: 100% !important;
+        max-width: none !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+
+    body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        min-height: 100vh;
+    }
+
+    .background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 10% 20%, rgba(255, 107, 53, 0.12) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(247, 147, 30, 0.1) 0%, transparent 40%);
+        z-index: -2;
+    }
+
+    .menu-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 30px;
+        padding: 20px 0;
+    }
+
+    .menu-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 50%, #ffd23f 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .menu-title-icon {
+        font-size: 2.8rem;
+        -webkit-text-fill-color: initial;
+    }
+
+    .menu-actions {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .btn-header {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 14px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        border: none;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .btn-header-primary {
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        color: white;
+        box-shadow: 0 4px 18px rgba(255, 107, 53, 0.35);
+    }
+
+    .btn-header-primary:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 28px rgba(255, 107, 53, 0.5);
+        filter: brightness(1.08);
+    }
+
+    .btn-header-secondary {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.15);
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .btn-header-secondary:hover {
+        background: rgba(255, 255, 255, 0.15);
+        border-color: rgba(255, 255, 255, 0.3);
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        color: #fff;
+    }
+
+    .menu-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
+    }
+
+    @media (max-width: 1024px) {
+        .menu-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    @media (max-width: 640px) {
+        .menu-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    .menu-card {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 248, 240, 0.98) 100%);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15),
+                    0 0 0 1px rgba(255, 255, 255, 0.2);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        position: relative;
+        backdrop-filter: blur(10px);
+    }
+
+    .menu-card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: 0 20px 60px rgba(255, 107, 53, 0.25),
+                    0 0 0 1px rgba(255, 255, 255, 0.2);
+    }
+
+    .menu-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #ff6b35 0%, #f7931e 50%, #ffd23f 100%);
+    }
+
+    .card-image-wrapper {
+        height: 200px;
+        overflow: hidden;
+        position: relative;
+        padding: 10px 0;
+    }
+
+    .card-image {
+        width: 100%;
+        height: 90%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .menu-card:hover .card-image {
+        transform: scale(1.1);
+    }
+
+    .card-no-image {
+        height: 200px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+        font-size: 4rem;
+    }
+
+    .card-content {
+        padding: 25px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .card-title {
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #2d3748;
+        margin: 0 0 12px 0;
+        line-height: 1.2;
+    }
+
+    .card-description {
+        color: #718096;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin: 0 0 18px 0;
+        font-weight: 500;
+    }
+
+    .card-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 15px;
+        border-top: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    .card-price {
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: #ff6b35;
+    }
+
+    .card-stock {
+        font-size: 0.85rem;
+        color: #48bb78;
+        font-weight: 600;
+    }
+
+    .card-stock.low {
+        color: #ed8936;
+    }
+
+    .card-stock.out {
+        color: #e53e3e;
+    }
+
+    .order-form {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .quantity-input {
+        width: 70px;
+        padding: 10px 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        font-size: 1rem;
+        text-align: center;
+        transition: all 0.3s ease;
+    }
+
+    .quantity-input:focus {
+        outline: none;
+        border-color: #ff6b35;
+        box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+    }
+
+    .btn-order {
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 6px 20px rgba(72, 187, 120, 0.35);
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .btn-order:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 28px rgba(72, 187, 120, 0.45);
+        filter: brightness(1.08);
+    }
+
+    .btn-order:active {
+        transform: translateY(0px);
+    }
+
+    .btn-order:disabled {
+        background: #a0aec0;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+        filter: none;
+    }
+
+    .out-of-stock {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        background: #fed7d7;
+        color: #c53030;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+    }
+
+    .empty-menu {
+        text-align: center;
+        padding: 80px 20px;
+        color: #a0aec0;
+    }
+
+    .empty-menu-icon {
+        font-size: 5rem;
+        margin-bottom: 20px;
+        opacity: 0.5;
+    }
+
+    .empty-menu-text {
+        font-size: 1.3rem;
+        margin: 0;
+    }
+
+    .admin-badge {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 700;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .main-card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .menu-card {
+        animation: fadeIn 0.6s ease-out;
+        animation-fill-mode: both;
+    }
+
+    .menu-card:nth-child(1) { animation-delay: 0.05s; }
+    .menu-card:nth-child(2) { animation-delay: 0.1s; }
+    .menu-card:nth-child(3) { animation-delay: 0.15s; }
+    .menu-card:nth-child(4) { animation-delay: 0.2s; }
+    .menu-card:nth-child(5) { animation-delay: 0.25s; }
+    .menu-card:nth-child(6) { animation-delay: 0.3s; }
+
+    html[data-theme="light"] body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 50%, #d9dde2 100%);
+    }
+
+    html[data-theme="light"] .background {
+        background: radial-gradient(circle at 10% 20%, rgba(255, 107, 53, 0.06) 0%, transparent 40%),
+                    radial-gradient(circle at 90% 80%, rgba(247, 147, 30, 0.04) 0%, transparent 40%);
+    }
+
+    html[data-theme="light"] .btn-header-secondary {
+        background: rgba(255, 255, 255, 0.7);
+        color: #2d3748;
+        border-color: rgba(0, 0, 0, 0.08);
+    }
+
+    html[data-theme="light"] .btn-header-secondary:hover {
+        background: rgba(255, 255, 255, 0.95);
+        border-color: rgba(0, 0, 0, 0.15);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    html[data-theme="light"] .btn-favorites {
+        background: rgba(255, 255, 255, 0.7);
+        color: #2d3748;
+        border-color: rgba(229, 62, 62, 0.15);
+    }
+
+    html[data-theme="light"] .btn-favorites:hover {
+        background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+        color: white;
+        border-color: transparent;
+    }
+
+    html[data-theme="light"] .menu-card {
+        background: linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(255,248,240,0.98) 100%);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 0 0 1px rgba(0,0,0,0.04);
+    }
+
+    html[data-theme="light"] .card-title {
+        color: #1a202c;
+    }
+
+    html[data-theme="light"] .card-description {
+        color: #4a5568;
+    }
+
+    html[data-theme="light"] .empty-menu {
+        color: #718096;
+    }
+
+    html[data-theme="dark"] .menu-card {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 248, 240, 0.95) 100%);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25),
+                    0 0 0 1px rgba(255, 255, 255, 0.15);
+    }
+
+    html[data-theme="dark"] .card-title {
+        color: #1a202c;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.3);
+    }
+
+    html[data-theme="dark"] .card-description {
+        color: #2d3748;
+        text-shadow: 0 1px 1px rgba(255, 255, 255, 0.2);
+    }
+
+    html[data-theme="dark"] .card-footer {
+        border-color: rgba(0, 0, 0, 0.12);
+    }
+
+    html[data-theme="dark"] .card-price {
+        color: #e53e3e;
+        text-shadow: 0 1px 2px rgba(255, 255, 255, 0.2);
+    }
+
+    html[data-theme="dark"] .card-stock {
+        color: #38a169;
+    }
+
+    html[data-theme="dark"] .quantity-input {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: rgba(0, 0, 0, 0.1);
+        color: #2d3748;
+    }
+
+    html[data-theme="dark"] .quantity-input:focus {
+        border-color: #ff6b35;
+        background: rgba(255, 255, 255, 0.95);
+    }
+
+    .payment-options {
+        display: flex;
+        gap: 10px;
+        flex: 1;
+        min-width: 160px;
+    }
+
+    .payment-label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: #f7fafc;
+        border: 2px solid #e2e8f0;
+        border-radius: 10px;
+        cursor: pointer;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #4a5568;
+        transition: all 0.3s ease;
+        flex: 1;
+    }
+
+    .payment-label:hover {
+        border-color: #ff6b35;
+        background: #fffaf0;
+    }
+
+    .payment-label input[type="radio"] {
+        accent-color: #ff6b35;
+        cursor: pointer;
+    }
+
+    .payment-label:has(input:checked) {
+        border-color: #ff6b35;
+        background: #fffaf0;
+        color: #ff6b35;
+    }
+
+    html[data-theme="light"] .payment-label {
+        background: #edf2f7;
+        border-color: #e2e8f0;
+        color: #4a5568;
+    }
+
+    html[data-theme="light"] .payment-label:hover {
+        background: #fffaf0;
+    }
+
+    html[data-theme="light"] .payment-label:has(input:checked) {
+        background: #fffaf0;
+    }
+
+    .favorite-btn {
+        position: absolute;
+        top: 12px;
+        left: 12px;
+        z-index: 5;
+        width: 38px;
+        height: 38px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        font-size: 1.15rem;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .favorite-btn:hover {
+        transform: scale(1.15);
+        background: rgba(255, 255, 255, 0.25);
+        box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+    }
+
+    .btn-favorites {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 20px;
+        border-radius: 14px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        cursor: pointer;
+        border: none;
+        font-family: 'Inter', sans-serif;
+        background: rgba(229, 62, 62, 0.12);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(229, 62, 62, 0.2);
+        color: rgba(255, 255, 255, 0.9);
+    }
+
+    .btn-favorites:hover {
+        background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+        border-color: transparent;
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(229, 62, 62, 0.35);
+        color: white;
+    }
+
+    .menu-filters {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 16px;
+        padding: 18px 22px;
+        margin-bottom: 28px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px;
+        align-items: center;
+    }
+
+    .filter-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .search-group {
+        flex: 1 1 260px;
+        min-width: 220px;
+    }
+
+    .filter-input {
+        flex: 1;
+        min-width: 160px;
+        padding: 10px 14px;
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        font-size: 0.95rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s ease;
+    }
+
+    .filter-input::placeholder {
+        color: rgba(255, 255, 255, 0.5);
+    }
+
+    .filter-input:focus {
+        outline: none;
+        border-color: #ff6b35;
+        background: rgba(255, 255, 255, 0.15);
+        box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.12);
+    }
+
+    .filter-btn {
+        padding: 10px 18px;
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+    }
+
+    .filter-btn:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+    }
+
+    .filter-select {
+        padding: 10px 14px;
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        font-size: 0.9rem;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .filter-select option {
+        background: #1a1a2e;
+        color: #fff;
+    }
+
+    .filter-select:focus {
+        outline: none;
+        border-color: #ff6b35;
+    }
+
+    .filter-checkbox {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 14px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        font-weight: 500;
+        color: rgba(255, 255, 255, 0.85);
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s ease;
+        user-select: none;
+    }
+
+    .filter-checkbox:hover {
+        background: rgba(255, 255, 255, 0.14);
+        border-color: rgba(255, 255, 255, 0.2);
+    }
+
+    .filter-checkbox input {
+        accent-color: #ff6b35;
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    .filter-reset {
+        padding: 10px 16px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 2px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        color: rgba(255, 255, 255, 0.7);
+        font-size: 0.9rem;
+        font-weight: 500;
+        font-family: 'Inter', sans-serif;
+        text-decoration: none;
+        transition: all 0.3s ease;
+    }
+
+    .filter-reset:hover {
+        background: rgba(255, 107, 53, 0.15);
+        border-color: rgba(255, 107, 53, 0.3);
+        color: #ff6b35;
+    }
+
+    html[data-theme="light"] .menu-filters {
+        background: rgba(255, 255, 255, 0.7);
+        border-color: rgba(0, 0, 0, 0.06);
+    }
+
+    html[data-theme="light"] .filter-input {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: #e2e8f0;
+        color: #2d3748;
+    }
+
+    html[data-theme="light"] .filter-input::placeholder {
+        color: #a0aec0;
+    }
+
+    html[data-theme="light"] .filter-select {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: #e2e8f0;
+        color: #2d3748;
+    }
+
+    html[data-theme="light"] .filter-select option {
+        background: #fff;
+        color: #2d3748;
+    }
+
+    html[data-theme="light"] .filter-checkbox {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: #e2e8f0;
+        color: #4a5568;
+    }
+
+    html[data-theme="light"] .filter-checkbox:hover {
+        background: #fffaf0;
+        border-color: #ff6b35;
+    }
+
+    html[data-theme="light"] .filter-reset {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: #e2e8f0;
+        color: #718096;
+    }
+
+    html[data-theme="light"] .filter-reset:hover {
+        background: #fffaf0;
+        color: #ff6b35;
+        border-color: rgba(255, 107, 53, 0.3);
+    }
+
+    /* Стили для отзывов */
+    .reviews-section {
+        margin-top: 15px;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .reviews-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+    }
+
+    .reviews-title {
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: #ff6b35;
+    }
+
+    .avg-rating {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #ffd23f;
+    }
+
+    .no-reviews {
+        font-size: 0.85rem;
+        color: rgba(255, 255, 255, 0.6);
+        font-style: italic;
+    }
+
+    .user-review {
+        background: rgba(255, 107, 53, 0.1);
+        border-radius: 8px;
+        padding: 10px;
+        margin-bottom: 10px;
+    }
+
+    .review-rating {
+        font-size: 0.9rem;
+        margin-bottom: 5px;
+    }
+
+    .review-comment {
+        font-size: 0.85rem;
+        color: #2d3748;
+        margin: 0;
+        line-height: 1.4;
+        font-weight: 500;
+    }
+
+    .review-delete-form {
+        margin-top: 8px;
+    }
+
+    .btn-delete-review {
+        background: rgba(220, 53, 69, 0.2);
+        color: #ff6b35;
+        border: 1px solid rgba(220, 53, 69, 0.3);
+        border-radius: 6px;
+        padding: 4px 8px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .btn-delete-review:hover {
+        background: rgba(220, 53, 69, 0.3);
+        border-color: rgba(220, 53, 69, 0.5);
+    }
+
+    .review-form {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 10px;
+    }
+
+    .rating-input {
+        margin-bottom: 10px;
+    }
+
+    .rating-label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 5px;
+    }
+
+    .rating-stars {
+        display: flex;
+        gap: 5px;
+        margin-bottom: 10px;
+    }
+
+    .star-label {
+        cursor: pointer;
+        transition: transform 0.2s ease;
+    }
+
+    .star-label:hover {
+        transform: scale(1.2);
+    }
+
+    .star-label input[type="radio"] {
+        display: none;
+    }
+
+    .star {
+        font-size: 1.2rem;
+        opacity: 0.5;
+        transition: opacity 0.2s ease;
+    }
+
+    .star-label input[type="radio"]:checked ~ .star {
+        opacity: 1;
+    }
+
+    .star-label:hover .star {
+        opacity: 0.8;
+    }
+
+    .comment-input {
+        margin-bottom: 10px;
+    }
+
+    .comment-label {
+        display: block;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 5px;
+    }
+
+    .review-form textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 6px;
+        background: rgba(255, 255, 255, 0.1);
+        color: #fff;
+        font-size: 0.85rem;
+        resize: vertical;
+        min-height: 60px;
+        transition: all 0.3s ease;
+    }
+
+    .review-form textarea:focus {
+        outline: none;
+        border-color: #ff6b35;
+        background: rgba(255, 255, 255, 0.15);
+    }
+
+    .review-form textarea::placeholder {
+        color: #9ca3af;
+    }
+
+    .btn-submit-review {
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        color: white;
+        border: none;
+        border-radius: 6px;
+        padding: 8px 16px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        box-shadow: 0 2px 8px rgba(255, 107, 53, 0.3);
+    }
+
+    .btn-submit-review:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(255, 107, 53, 0.4);
+    }
+
+    /* Stock management for canteen admin */
+    .stock-management {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .stock-form {
+        margin: 0;
+    }
+
+    .stock-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        border: none;
+        font-size: 1.2rem;
+        font-weight: 700;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+
+    .stock-minus {
+        background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        color: white;
+    }
+
+    .stock-minus:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
+    }
+
+    .stock-plus {
+        background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+        color: white;
+    }
+
+    .stock-plus:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 8px rgba(34, 197, 94, 0.4);
+    }
+
+    .stock-value {
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 4px 8px;
+        border-radius: 6px;
+        min-width: 50px;
+        text-align: center;
+    }
+
+    .stock-value.out {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+    }
+
+    .stock-value.low {
+        background: rgba(245, 158, 11, 0.1);
+        color: #f59e0b;
+    }
+
+    .review-hint {
+        font-size: 0.8rem;
+        color: #000000;
+        font-style: italic;
+        text-align: center;
+        padding: 8px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 6px;
+    }
+
+    /* Светлая тема для отзывов */
+    html[data-theme="light"] .reviews-section {
+        border-color: rgba(0, 0, 0, 0.1);
+    }
+
+    html[data-theme="light"] .reviews-title {
+        color: #e53e3e;
+    }
+
+    html[data-theme="light"] .avg-rating {
+        color: #d69e2e;
+    }
+
+    html[data-theme="light"] .no-reviews {
+        color: #718096;
+    }
+
+    html[data-theme="light"] .user-review {
+        background: rgba(229, 62, 62, 0.1);
+    }
+
+    html[data-theme="light"] .review-comment {
+        color: #4a5568;
+    }
+
+    html[data-theme="light"] .btn-delete-review {
+        background: rgba(229, 62, 62, 0.1);
+        color: #e53e3e;
+        border-color: rgba(229, 62, 62, 0.2);
+    }
+
+    html[data-theme="light"] .btn-delete-review:hover {
+        background: rgba(229, 62, 62, 0.15);
+        border-color: rgba(229, 62, 62, 0.3);
+    }
+
+    html[data-theme="light"] .review-form {
+        background: rgba(229, 62, 62, 0.05);
+    }
+
+    html[data-theme="light"] .rating-label,
+    html[data-theme="light"] .comment-label {
+        color: #4a5568;
+    }
+
+    html[data-theme="light"] .review-form textarea {
+        background: rgba(255, 255, 255, 0.9);
+        border-color: #e2e8f0;
+        color: #2d3748;
+    }
+
+    html[data-theme="light"] .review-form textarea::placeholder {
+        color: #a0aec0;
+    }
+
+    html[data-theme="light"] .review-hint {
+        color: #000000;
+        background: rgba(229, 62, 62, 0.05);
+    }
+
+    /* Тёмная тема для отзывов */
+    html[data-theme="dark"] .review-comment {
+        color: #1a202c !important;
+        font-weight: 600;
+    }
+
+    html[data-theme="dark"] .review-rating {
+        color: #1a202c;
+    }
+
+    html[data-theme="dark"] .no-reviews {
+        color: #4a5568;
+    }
+
+    html[data-theme="dark"] .rating-label,
+    html[data-theme="dark"] .comment-label {
+        color: #4a5568;
+    }
+</style>
+
+<div class="menu-wrapper">
+    <div class="menu-header">
+        <h1 class="menu-title">
+            <span class="menu-title-icon">🍽️</span>
+            Меню столовой
+        </h1>
+        {% if user.is_authenticated %}
+            <div class="menu-actions">
+                {% if user.user_type == 'canteen_admin' %}
+                    <a href="{% url 'sales_report' %}" class="btn-header btn-header-secondary">💰 Продажи</a>
+                    <a href="{% url 'orders' %}" class="btn-header btn-header-secondary">📋 Заказы</a>
+                {% elif user.user_type == 'tech_support' %}
+                    <a href="{% url 'support_dashboard' %}" class="btn-header btn-header-secondary">🎧 Поддержка</a>
+                {% elif not user.is_superuser %}
+                    <a href="{% url 'orders' %}" class="btn-header btn-header-secondary">📋 Мои заказы</a>
+                    <a href="{% url 'pre_orders' %}" class="btn-header btn-header-secondary">🕐 Предзаказы</a>
+                    <a href="{% url 'favorites' %}" class="btn-favorites">❤️ Избранное</a>
+                    {% if user.user_type == 'customer' %}
+                        <a href="{% url 'popular_items' %}" class="btn-header btn-header-primary">🔥 Популярное</a>
+                        <a href="{% url 'pre_order' %}" class="btn-header btn-header-primary">🛒 Сделать предзаказ</a>
+                        <a href="{% url 'create_support_request' %}" class="btn-header btn-header-secondary">🎧 Поддержка</a>
+                    {% endif %}
+                {% endif %}
+                <a href="{% url 'profile' %}" class="btn-header btn-header-primary">👤 Профиль</a>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ... -->
+    <form method="get" action="{% url 'menu' %}" class="menu-filters">
+        <div class="filter-group search-group">
+            <input type="text" name="search" value="{{ search|default:'' }}" placeholder="🔍 Поиск по меню..." class="filter-input">
+            <button type="submit" class="filter-btn">Найти</button>
+        </div>
+        <div class="filter-group">
+            <select name="sort" onchange="this.form.submit()" class="filter-select">
+                <option value="default" {% if sort == 'default' %}selected{% endif %}>Сортировка: по умолчанию</option>
+                <option value="price_asc" {% if sort == 'price_asc' %}selected{% endif %}>Цена: по возрастанию</option>
+                <option value="price_desc" {% if sort == 'price_desc' %}selected{% endif %}>Цена: по убыванию</option>
+                <option value="name" {% if sort == 'name' %}selected{% endif %}>Название: А-Я</option>
+            </select>
+            <label class="filter-checkbox">
+                <input type="checkbox" name="in_stock" value="1" {% if in_stock %}checked{% endif %} onchange="this.form.submit()">
+                <span>✅ Только в наличии</span>
+            </label>
+            {% if search or sort != 'default' or in_stock %}
+                <a href="{% url 'menu' %}" class="filter-reset">Сбросить</a>
+            {% endif %}
+        </div>
+    </form>
+
+    {% if items %}
+        <div class="menu-grid">
+            {% for item in items %}
+                <div class="menu-card">
+                    {% if user.is_authenticated and user.user_type != 'canteen_admin' %}
+                        <a href="{% url 'toggle_favorite' item.id %}" class="favorite-btn" title="{% if item.id in favorite_ids %}Убрать из избранного{% else %}Добавить в избранное{% endif %}">
+                            {% if item.id in favorite_ids %}❤️{% else %}🤍{% endif %}
+                        </a>
+                    {% endif %}
+
+                    {% if item.image %}
+                        <div class="card-image-wrapper">
+                            <img src="{{ item.image.url }}" alt="{{ item.name }}" class="card-image">
+                        </div>
+                    {% else %}
+                        <div class="card-no-image">🍽️</div>
+                    {% endif %}
+
+                    <div class="card-content">
+                        <h3 class="card-title">{{ item.name }}</h3>
+                        <p class="card-description">{{ item.description }}</p>
+
+                        <!-- Отзывы -->
+                        <div class="reviews-section">
+                            <div class="reviews-header">
+                                <span class="reviews-title">⭐ Отзывы</span>
+                                {% if item.review_set.exists %}
+                                    {% with avg_rating=item.review_set.all|average_rating %}
+                                        <span class="avg-rating">{{ avg_rating|floatformat:1 }}</span>
+                                    {% endwith %}
+                                {% else %}
+                                    <span class="no-reviews">Пока нет отзывов</span>
+                                {% endif %}
+                            </div>
+                            {% if user.is_authenticated %}
+                                {% with user_review_exists=False %}
+                                    {% for review in item.review_set.all %}
+                                        {% if review.user == user %}
+                                            {% with user_review_exists=True %}
+                                                <div class="user-review">
+                                                    <div class="review-rating">{{ review.get_rating_display }}</div>
+                                                    {% if review.comment %}
+                                                        <p class="review-comment">{{ review.comment }}</p>
+                                                    {% endif %}
+                                                    <form method="post" action="{% url 'delete_review' item.id %}" class="review-delete-form">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn-delete-review">🗑️ Удалить отзыв</button>
+                                                    </form>
+                                                </div>
+                                            {% endwith %}
+                                        {% endif %}
+                                    {% endfor %}
+                                    {% if not user_review_exists %}
+                                        <!-- Проверяем, может ли пользователь оставить отзыв -->
+                                        {% with has_ordered=item|has_ordered:user %}
+                                            {% if has_ordered %}
+                                                <form method="post" action="{% url 'add_review' item.id %}" class="review-form">
+                                                    {% csrf_token %}
+                                                    <div class="rating-input">
+                                                        <label class="rating-label">Ваша оценка:</label>
+                                                        <div class="rating-stars">
+                                                            {% for i in "12345" %}
+                                                                <label class="star-label">
+                                                                    <input type="radio" name="rating" value="{{ i }}" required>
+                                                                    <span class="star">⭐</span>
+                                                                </label>
+                                                            {% endfor %}
+                                                        </div>
+                                                    </div>
+                                                    <div class="comment-input">
+                                                        <label class="comment-label">Комментарий (необязательно):</label>
+                                                        <textarea name="comment" rows="3" placeholder="Поделитесь впечатлениями..."></textarea>
+                                                    </div>
+                                                    <button type="submit" class="btn-submit-review">📝 Оставить отзыв</button>
+                                                </form>
+                                            {% else %}
+                                                <p class="review-hint">💡 Отзывы доступны после покупки блюда</p>
+                                            {% endif %}
+                                        {% endwith %}
+                                    {% endif %}
+                                {% endwith %}
+                            {% endif %}
+                        </div>
+
+                        <div class="card-footer">
+                            <span class="card-price">{{ item.price }} ₽</span>
+                            {% if user.user_type == 'canteen_admin' %}
+                                <div class="stock-management">
+                                    <form method="post" action="{% url 'update_stock' item.id %}" class="stock-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="decrease">
+                                        <button type="submit" class="stock-btn stock-minus">−</button>
+                                    </form>
+                                    <span class="stock-value {% if item.stock == 0 %}out{% elif item.stock < 10 %}low{% endif %}">{{ item.stock }} шт.</span>
+                                    <form method="post" action="{% url 'update_stock' item.id %}" class="stock-form">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="action" value="increase">
+                                        <button type="submit" class="stock-btn stock-plus">+</button>
+                                    </form>
+                                </div>
+                            {% else %}
+                                <span class="card-stock {% if item.stock == 0 %}out{% elif item.stock < 10 %}low{% endif %}">
+                                    {% if item.stock == 0 %}❌ Нет в наличии
+                                    {% elif item.stock < 10 %}⚠️ Осталось мало
+                                    {% else %}✅ В наличии
+                                    {% endif %}
+                                </span>
+                            {% endif %}
+                        </div>
+
+                        {% if user.is_authenticated and user.user_type == 'customer' %}
+                            {% if item.stock > 0 %}
+                                <form method="post" action="{% url 'place_order' item.id %}" class="order-form" style="flex-wrap: wrap;">
+                                    {% csrf_token %}
+                                    <input type="number" name="quantity" value="1" min="1" max="{{ item.stock }}" class="quantity-input">
+                                    <div class="payment-options">
+                                        <label class="payment-label">
+                                            <input type="radio" name="payment_method" value="cash" checked>
+                                            <span>💵 Наличные</span>
+                                        </label>
+                                        <label class="payment-label">
+                                            <input type="radio" name="payment_method" value="card">
+                                            <span>💳 Карта</span>
+                                        </label>
+                                    </div>
+                                    <button type="submit" class="btn-order">🛒 Заказать</button>
+                                </form>
+                            {% else %}
+                                <div class="order-form">
+                                    <span class="out-of-stock">❌ Нет в наличии</span>
+                                </div>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-menu">
+            <div class="empty-menu-icon">🍽️</div>
+            <p class="empty-menu-text">Меню пока пусто. Загляните позже!</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

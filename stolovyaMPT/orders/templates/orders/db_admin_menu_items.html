@@ -1,0 +1,388 @@
+{% extends 'orders/base.html' %}
+
+{% block title %}Блюда — Админ БД — Столовая МПТ{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        min-height: 100vh;
+    }
+
+    .background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 80% 20%, rgba(255, 107, 53, 0.12) 0%, transparent 40%);
+        z-index: -2;
+    }
+
+    .admin-wrapper {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-bottom: 30px;
+        gap: 15px;
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        flex: 1;
+    }
+
+    .btn-back-to-panel {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        color: white;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 3px 12px rgba(74, 85, 104, 0.3);
+    }
+
+    .btn-back-to-panel:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(74, 85, 104, 0.4);
+        background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%);
+    }
+
+    .admin-title {
+        font-size: 1.8rem;
+        font-weight: 800;
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        margin: 0;
+    }
+
+    .btn-create {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        color: white;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+    }
+
+    .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 107, 53, 0.5);
+    }
+
+    .items-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 25px;
+    }
+
+    .item-card {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 248, 240, 0.95) 100%);
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        position: relative;
+    }
+
+    .item-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 50px rgba(255, 107, 53, 0.15);
+    }
+
+    .item-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #ff6b35 0%, #f7931e 100%);
+    }
+
+    .item-image {
+        height: 180px;
+        overflow: hidden;
+    }
+
+    .item-image img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.5s ease;
+    }
+
+    .item-card:hover .item-image img {
+        transform: scale(1.05);
+    }
+
+    .item-no-image {
+        height: 180px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #f5f5f5 0%, #e8e8e8 100%);
+        font-size: 4rem;
+    }
+
+    .item-content {
+        padding: 22px;
+    }
+
+    .item-name {
+        font-size: 1.2rem;
+        font-weight: 700;
+        color: #2d3748;
+        margin: 0 0 8px 0;
+    }
+
+    .item-description {
+        color: #718096;
+        font-size: 0.9rem;
+        line-height: 1.5;
+        margin: 0 0 15px 0;
+    }
+
+    .item-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 15px;
+        border-top: 1px solid #e2e8f0;
+        margin-bottom: 15px;
+    }
+
+    .item-price {
+        font-size: 1.3rem;
+        font-weight: 800;
+        color: #ff6b35;
+    }
+
+    .item-stock {
+        font-size: 0.85rem;
+        padding: 6px 12px;
+        border-radius: 20px;
+        font-weight: 600;
+    }
+
+    .stock-ok {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+
+    .stock-low {
+        background: #feebc8;
+        color: #7c2d12;
+    }
+
+    .stock-out {
+        background: #fed7d7;
+        color: #742a2a;
+    }
+
+    .item-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-edit, .btn-delete {
+        flex: 1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        padding: 10px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+    }
+
+    .btn-edit {
+        background: #e6fffa;
+        color: #38b2ac;
+    }
+
+    .btn-edit:hover {
+        background: #b2f5ea;
+    }
+
+    .btn-delete {
+        background: #fed7d7;
+        color: #c53030;
+    }
+
+    .btn-delete:hover {
+        background: #feb2b2;
+    }
+
+    .main-card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Светлая тема */
+    html[data-theme="light"] body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 50%, #d9dde2 100%);
+        min-height: 100vh;
+    }
+
+    html[data-theme="light"] .background {
+        background: radial-gradient(circle at 80% 20%, rgba(255, 107, 53, 0.06) 0%, transparent 40%);
+    }
+
+    html[data-theme="light"] .admin-title {
+        color: #1a202c;
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
+
+    html[data-theme="light"] .btn-create {
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        color: white;
+    }
+
+    html[data-theme="light"] .btn-create:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 107, 53, 0.3);
+    }
+
+    html[data-theme="light"] .item-card {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 248, 240, 0.98) 100%);
+        box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08), 0 5px 20px rgba(0, 0, 0, 0.06);
+    }
+
+    html[data-theme="light"] .item-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 15px 50px rgba(255, 107, 53, 0.15);
+    }
+
+    html[data-theme="light"] .item-name {
+        color: #1a202c;
+    }
+
+    html[data-theme="light"] .item-description {
+        color: #4a5568;
+    }
+
+    html[data-theme="light"] .item-price {
+        color: #ff6b35;
+    }
+
+    html[data-theme="light"] .item-stock-ok {
+        background: #c6f6d5;
+        color: #22543d;
+    }
+
+    html[data-theme="light"] .item-stock-low {
+        background: #e8f5e8;
+        color: #7c2d12;
+    }
+
+    html[data-theme="light"] .item-stock-out {
+        background: #fef3c7;
+        color: #dc2626;
+    }
+
+    html[data-theme="light"] .btn-edit {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    html[data-theme="light"] .btn-delete {
+        background: #fee2e2;
+        color: #dc2626;
+    }
+
+    html[data-theme="light"] .btn-edit:hover {
+        background: #bfdbfe;
+    }
+
+    html[data-theme="light"] .btn-delete:hover {
+        background: #fecaca;
+    }
+
+    html[data-theme="light"] .btn-back-to-panel {
+        background: linear-gradient(135deg, #718096 0%, #4a5568 100%);
+        box-shadow: 0 3px 12px rgba(113, 128, 150, 0.3);
+    }
+
+    html[data-theme="light"] .btn-back-to-panel:hover {
+        background: linear-gradient(135deg, #4a5568 0%, #2d3748 100%);
+        box-shadow: 0 6px 20px rgba(74, 85, 104, 0.3);
+    }
+    </style>
+
+    <div class="admin-wrapper">
+        <div class="admin-header">
+            <div class="header-left">
+                <a href="{% url 'db_admin_panel' %}" class="btn-back-to-panel">
+                    <span class="btn-icon">⬅️</span>
+                    <span class="btn-text">Вернуться в панель</span>
+                </a>
+                <h1 class="admin-title">🍽️ Блюда меню</h1>
+            </div>
+            <a href="{% url 'db_admin_create_menu_item' %}" class="btn-create">➕ Добавить блюдо</a>
+        </div>
+
+        <div class="items-grid">
+            {% for item in items %}
+            <div class="item-card">
+                {% if item.image %}
+                    <div class="item-image">
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                    </div>
+                {% else %}
+                    <div class="item-no-image">🍽️</div>
+                {% endif %}
+
+                <div class="item-content">
+                    <h3 class="item-name">{{ item.name }}</h3>
+                    <p class="item-description">{{ item.description|truncatewords:15 }}</p>
+
+                    <div class="item-meta">
+                        <span class="item-price">{{ item.price }} ₽</span>
+                        <span class="item-stock
+                            {% if item.stock == 0 %}stock-out{% elif item.stock < 10 %}stock-low{% else %}stock-ok{% endif %}">
+                            {% if item.stock == 0 %}❌ Нет в наличии
+                            {% elif item.stock < 10 %}⚠️ {{ item.stock }} шт.
+                            {% else %}✅ {{ item.stock }} шт.{% endif %}
+                        </span>
+                    </div>
+
+                    <div class="item-actions">
+                        <a href="{% url 'db_admin_edit_menu_item' item.id %}" class="btn-edit">✏️ Редактировать</a>
+                        <a href="{% url 'db_admin_delete_menu_item' item.id %}" class="btn-delete">🗑️ Удалить</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

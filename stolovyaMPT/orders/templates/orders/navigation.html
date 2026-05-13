@@ -1,0 +1,301 @@
+{% load static %}
+<nav class="navbar">
+    <div class="nav-container">
+        <div class="nav-brand">
+            <a href="{% url 'menu' %}" class="brand-link">
+                🍽 Столовая МПТ
+            </a>
+        </div>
+        
+        <div class="nav-menu">
+            {% if user.is_authenticated %}
+                {% if user.user_type == 'customer' %}
+                    <a href="{% url 'menu' %}" class="nav-link">
+                        📋 Меню
+                    </a>
+                    <a href="{% url 'favorites' %}" class="nav-link">
+                        ❤️ Избранное
+                    </a>
+                    <a href="{% url 'recommendations' %}" class="nav-link nav-link-highlight">
+                        🎯 Рекомендации
+                    </a>
+                    <a href="{% url 'orders' %}" class="nav-link">
+                        📦 Мои заказы
+                    </a>
+                    <a href="{% url 'pre_orders' %}" class="nav-link">
+                        ⏰ Предзаказы
+                    </a>
+                    <a href="{% url 'popular_items' %}" class="nav-link">
+                        🔥 Популярное
+                    </a>
+                    <a href="{% url 'trending_items' %}" class="nav-link">
+                        📈 Тренды
+                    </a>
+                {% elif user.user_type == 'canteen_admin' %}
+                    <a href="{% url 'menu' %}" class="nav-link">
+                        📋 Меню
+                    </a>
+                    <a href="{% url 'orders' %}" class="nav-link">
+                        📦 Заказы
+                    </a>
+                    <a href="{% url 'pre_orders' %}" class="nav-link">
+                        ⏰ Предзаказы
+                    </a>
+                    <a href="{% url 'sales_report' %}" class="nav-link">
+                        📊 Отчеты
+                    </a>
+                    <a href="{% url 'canteen_admin' %}" class="nav-link">
+                        ⚙️ Управление
+                    </a>
+                {% elif user.user_type == 'tech_support' %}
+                    <a href="{% url 'support_dashboard' %}" class="nav-link">
+                        💬 Поддержка
+                    </a>
+                {% endif %}
+                
+                <div class="nav-dropdown">
+                    <button class="nav-dropdown-btn">
+                        👤 {{ user.username }}
+                        <span class="dropdown-arrow">▼</span>
+                    </button>
+                    <div class="nav-dropdown-content">
+                        <a href="{% url 'profile' %}" class="dropdown-link">
+                            👤 Профиль
+                        </a>
+                        <a href="{% url 'settings' %}" class="dropdown-link">
+                            ⚙️ Настройки
+                        </a>
+                        {% if user.user_type == 'customer' %}
+                            <a href="{% url 'customer_support_requests' %}" class="dropdown-link">
+                                💬 Мои обращения
+                            </a>
+                        {% endif %}
+                        <div class="dropdown-divider"></div>
+                        <a href="{% url 'change_password' %}" class="dropdown-link">
+                            🔐 Сменить пароль
+                        </a>
+                        <a href="{% url 'change_email' %}" class="dropdown-link">
+                            📧 Сменить email
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="{% url 'logout' %}" class="dropdown-link">
+                            🚪 Выход
+                        </a>
+                    </div>
+                </div>
+            {% else %}
+                <a href="{% url 'menu' %}" class="nav-link">
+                    📋 Меню
+                </a>
+                <a href="{% url 'login' %}" class="nav-link">
+                    🔐 Вход
+                </a>
+                <a href="{% url 'register' %}" class="nav-link">
+                    📝 Регистрация
+                </a>
+            {% endif %}
+        </div>
+        
+        <div class="nav-actions">
+            <button class="theme-toggle" onclick="toggleTheme()">
+                <span class="theme-icon">🌙</span>
+            </button>
+        </div>
+    </div>
+</nav>
+
+<style>
+.navbar {
+    background: var(--card-bg);
+    border-bottom: 1px solid var(--border-color);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.nav-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 20px;
+    height: 60px;
+}
+
+.nav-brand .brand-link {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--primary-color);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.nav-menu {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.nav-link {
+    padding: 8px 16px;
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--text-color);
+    font-weight: 500;
+    transition: all 0.3s ease;
+    border: 1px solid transparent;
+}
+
+.nav-link:hover {
+    background: var(--hover-bg);
+    color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.nav-link-highlight {
+    background: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.nav-link-highlight:hover {
+    background: var(--primary-hover);
+    transform: translateY(-1px);
+}
+
+.nav-dropdown {
+    position: relative;
+}
+
+.nav-dropdown-btn {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 8px 16px;
+    color: var(--text-color);
+    font-weight: 500;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
+
+.nav-dropdown-btn:hover {
+    background: var(--hover-bg);
+    border-color: var(--primary-color);
+}
+
+.dropdown-arrow {
+    font-size: 0.8rem;
+    transition: transform 0.3s ease;
+}
+
+.nav-dropdown:hover .dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.nav-dropdown-content {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    min-width: 200px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
+    margin-top: 5px;
+}
+
+.nav-dropdown:hover .nav-dropdown-content {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-link {
+    display: block;
+    padding: 12px 16px;
+    color: var(--text-color);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border-bottom: 1px solid transparent;
+}
+
+.dropdown-link:hover {
+    background: var(--hover-bg);
+    color: var(--primary-color);
+}
+
+.dropdown-link:first-child {
+    border-radius: 8px 8px 0 0;
+}
+
+.dropdown-link:last-child {
+    border-radius: 0 0 8px 8px;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 4px 0;
+}
+
+.nav-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.theme-toggle {
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.theme-toggle:hover {
+    background: var(--hover-bg);
+    border-color: var(--primary-color);
+    transform: rotate(180deg);
+}
+
+.theme-icon {
+    font-size: 1.2rem;
+}
+
+@media (max-width: 768px) {
+    .nav-container {
+        padding: 0 10px;
+    }
+    
+    .nav-menu {
+        gap: 4px;
+    }
+    
+    .nav-link {
+        padding: 6px 12px;
+        font-size: 0.9rem;
+    }
+    
+    .nav-dropdown-content {
+        right: -50px;
+    }
+}
+</style>

@@ -1,0 +1,345 @@
+{% extends 'orders/base.html' %}
+
+{% block title %}Настройки — Столовая МПТ{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        min-height: 100vh;
+    }
+
+    .background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 30% 70%, rgba(102, 126, 234, 0.1) 0%, transparent 40%);
+        z-index: -2;
+    }
+
+    .settings-wrapper {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .settings-header {
+        text-align: center;
+        margin-bottom: 40px;
+    }
+
+    .settings-title {
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: #ffffff !important;
+        margin: 0 0 10px 0;
+    }
+
+    .settings-subtitle {
+        color: #a0aec0;
+        font-size: 1.1rem;
+        margin: 0;
+    }
+
+    .settings-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 25px;
+    }
+
+    .settings-card {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 248, 240, 0.95) 100%);
+        border-radius: 20px;
+        padding: 25px;
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: hidden;
+        transition: all 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        box-sizing: border-box;
+    }
+
+    .settings-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+    }
+
+    .settings-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .card-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        margin-bottom: 20px;
+        box-sizing: border-box;
+        flex-shrink: 0;
+    }
+
+    .card-icon.password {
+        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+    }
+
+    .card-icon.email {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    }
+
+    .card-icon.theme {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .card-title {
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: #1a202c !important;
+        margin: 0 0 15px 0;
+        box-sizing: border-box;
+        word-wrap: break-word;
+    }
+
+    .card-description {
+        color: #718096;
+        font-size: 0.95rem;
+        line-height: 1.6;
+        margin-bottom: 25px;
+        box-sizing: border-box;
+        word-wrap: break-word;
+    }
+
+    .btn-settings {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 20px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+        justify-content: center;
+        margin-top: auto;
+        box-sizing: border-box;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    .btn-password {
+        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(237, 137, 54, 0.4);
+    }
+
+    .btn-password:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(237, 137, 54, 0.5);
+    }
+
+    .btn-email {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-email:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(59, 130, 246, 0.5);
+    }
+
+    .btn-theme {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-theme:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+    }
+
+    .current-info {
+        background: #f7fafc;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 20px;
+        font-size: 0.9rem;
+        box-sizing: border-box;
+        word-wrap: break-word;
+    }
+
+    .current-info strong {
+        color: #4a5568;
+    }
+
+    .current-info span {
+        color: #2d3748;
+        font-weight: 600;
+    }
+
+    .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        color: #a0aec0;
+        text-decoration: none;
+        font-weight: 600;
+        margin-bottom: 30px;
+        transition: color 0.3s ease;
+    }
+
+    .back-link:hover {
+        color: #667eea;
+    }
+
+    .main-card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    /* Светлая тема */
+    html[data-theme="light"] body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 50%, #d9dde2 100%);
+    }
+
+    html[data-theme="light"] .background {
+        background: radial-gradient(circle at 30% 70%, rgba(102, 126, 234, 0.06) 0%, transparent 40%);
+    }
+
+    html[data-theme="light"] .settings-card {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 248, 240, 0.98) 100%);
+        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.08);
+    }
+
+    html[data-theme="light"] .settings-title {
+        color: #1a202c !important;
+    }
+
+    html[data-theme="light"] .card-title {
+        color: #1a202c !important;
+    }
+
+    html[data-theme="light"] .card-description {
+        color: #4a5568;
+    }
+
+    html[data-theme="light"] .current-info {
+        background: #edf2f7;
+    }
+
+    html[data-theme="light"] .current-info strong {
+        color: #2d3748;
+    }
+
+    html[data-theme="light"] .current-info span {
+        color: #1a202c;
+    }
+
+    html[data-theme="light"] .back-link {
+        color: #718096;
+    }
+
+    html[data-theme="light"] .back-link:hover {
+        color: #667eea;
+    }
+</style>
+
+<div class="settings-wrapper">
+    <a href="{% url 'profile' %}" class="back-link">← Вернуться в профиль</a>
+    
+    <div class="settings-header">
+        <h1 class="settings-title">⚙️ Настройки</h1>
+        <p class="settings-subtitle">Управление вашим аккаунтом и предпочтениями</p>
+    </div>
+
+    <div class="settings-grid">
+        <!-- Карточка смены пароля -->
+        <div class="settings-card">
+            <div class="card-icon password">🔒</div>
+            <h2 class="card-title">Сменить пароль</h2>
+            <p class="card-description">Обеспечьте безопасность вашего аккаунта, изменив пароль на новый и надёжный.</p>
+            <div class="current-info">
+                <strong>Последнее изменение:</strong> <span>Неизвестно</span>
+            </div>
+            <a href="{% url 'change_password' %}" class="btn-settings btn-password">
+                🔒 Сменить пароль
+            </a>
+        </div>
+
+        <!-- Карточка смены email -->
+        <div class="settings-card">
+            <div class="card-icon email">📧</div>
+            <h2 class="card-title">Сменить email</h2>
+            <p class="card-description">Обновите адрес электронной почты для получения уведомлений и восстановления доступа.</p>
+            <div class="current-info">
+                <strong>Текущий email:</strong> <span>{{ user.email|default:"Не указан" }}</span>
+            </div>
+            <a href="{% url 'change_email' %}" class="btn-settings btn-email">
+                📧 Сменить email
+            </a>
+        </div>
+
+        <!-- Карточка смены темы -->
+        <div class="settings-card">
+            <div class="card-icon theme">🌓</div>
+            <h2 class="card-title">Внешний вид</h2>
+            <p class="card-description">Выберите комфортную для вас тему оформления приложения - тёмную или светлую.</p>
+            <div class="current-info">
+                <strong>Текущая тема:</strong> <span id="current-theme">Тёмная</span>
+            </div>
+            <button type="button" class="btn-settings btn-theme" id="theme-toggle-btn">
+                🌓 Сменить тему
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+(function() {
+    // Восстанавливаем сохраненную тему при загрузке страницы
+    var savedTheme = localStorage.getItem('theme');
+    var currentThemeSpan = document.getElementById('current-theme');
+    
+    if (savedTheme) {
+        document.documentElement.setAttribute('data-theme', savedTheme);
+        if (currentThemeSpan) {
+            currentThemeSpan.textContent = savedTheme === 'light' ? 'Светлая' : 'Тёмная';
+        }
+    }
+    
+    var btn = document.getElementById('theme-toggle-btn');
+    if (!btn) return;
+    
+    btn.addEventListener('click', function() {
+        var html = document.documentElement;
+        var current = html.getAttribute('data-theme') || 'dark';
+        var next = current === 'dark' ? 'light' : 'dark';
+        
+        html.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        
+        if (currentThemeSpan) {
+            currentThemeSpan.textContent = next === 'light' ? 'Светлая' : 'Тёмная';
+        }
+        
+        console.log('Theme switched to:', next);
+    });
+})();
+</script>
+{% endblock %}

@@ -1,0 +1,382 @@
+{% extends 'orders/base.html' %}
+
+{% block title %}Чат поддержки #{{ support_request.id }} — Столовая МПТ{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        min-height: 100vh;
+    }
+
+    .container {
+        width: 95% !important;
+        max-width: 1000px !important;
+        padding: 20px !important;
+    }
+
+    .main-card {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 248, 240, 0.95) 100%);
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        overflow: hidden;
+    }
+
+    .chat-header {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        padding: 20px 25px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+
+    .chat-header-info {
+        flex: 1;
+    }
+
+    .chat-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin: 0;
+    }
+
+    .chat-subtitle {
+        font-size: 0.9rem;
+        opacity: 0.9;
+        margin-top: 4px;
+    }
+
+    .status-badge {
+        padding: 6px 14px;
+        border-radius: 20px;
+        font-size: 0.8rem;
+        font-weight: 600;
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        background: rgba(255, 255, 255, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 10px;
+        color: white;
+        text-decoration: none;
+        font-weight: 500;
+        font-size: 0.85rem;
+        transition: all 0.2s ease;
+    }
+
+    .btn-back:hover {
+        background: rgba(255, 255, 255, 0.25);
+    }
+
+    .request-info {
+        padding: 20px 25px;
+        background: #f8fafc;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .info-label {
+        font-size: 0.8rem;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .info-value {
+        font-size: 0.95rem;
+        color: #1e293b;
+        font-weight: 600;
+    }
+
+    .chat-messages {
+        padding: 25px;
+        max-height: 450px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        background: white;
+    }
+
+    .message {
+        display: flex;
+        flex-direction: column;
+        max-width: 80%;
+    }
+
+    .message.sent {
+        align-self: flex-end;
+        align-items: flex-end;
+    }
+
+    .message.received {
+        align-self: flex-start;
+        align-items: flex-start;
+    }
+
+    .message-bubble {
+        padding: 14px 18px;
+        border-radius: 18px;
+        font-size: 0.95rem;
+        line-height: 1.5;
+        word-wrap: break-word;
+    }
+
+    .message.sent .message-bubble {
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        border-bottom-right-radius: 6px;
+    }
+
+    .message.received .message-bubble {
+        background: #f1f5f9;
+        color: #1e293b;
+        border-bottom-left-radius: 6px;
+    }
+
+    .message-meta {
+        font-size: 0.75rem;
+        color: #64748b;
+        margin-top: 4px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .sender-name {
+        font-weight: 600;
+    }
+
+    .chat-input-area {
+        padding: 20px 25px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .chat-form {
+        display: flex;
+        gap: 12px;
+        align-items: flex-start;
+    }
+
+    .message-input {
+        flex: 1;
+        padding: 14px 18px;
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-family: 'Inter', sans-serif;
+        resize: vertical;
+        min-height: 80px;
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    .message-input:focus {
+        border-color: #3b82f6;
+        box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1);
+    }
+
+    .btn-send {
+        padding: 14px 24px;
+        background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        height: fit-content;
+    }
+
+    .btn-send:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+    }
+
+    .status-selector {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 25px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .status-select {
+        padding: 8px 14px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        background: white;
+        cursor: pointer;
+    }
+
+    .status-select:focus {
+        border-color: #3b82f6;
+        outline: none;
+    }
+
+    .empty-chat {
+        text-align: center;
+        padding: 40px;
+        color: #64748b;
+    }
+
+    .closed-notice {
+        padding: 20px 25px;
+        background: #f8fafc;
+        border-top: 1px solid #e2e8f0;
+        text-align: center;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    /* Scrollbar styling */
+    .chat-messages::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    .chat-messages::-webkit-scrollbar-track {
+        background: #f1f5f9;
+        border-radius: 4px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb {
+        background: #cbd5e1;
+        border-radius: 4px;
+    }
+
+    .chat-messages::-webkit-scrollbar-thumb:hover {
+        background: #94a3b8;
+    }
+</style>
+
+<div class="main-card">
+    <div class="chat-header">
+        <div class="chat-header-info">
+            <h1 class="chat-title">💬 Запрос #{{ support_request.id }}: {{ support_request.subject }}</h1>
+            <div class="chat-subtitle">{{ support_request.customer.username }} • {{ support_request.get_category_display }}</div>
+        </div>
+        <span class="status-badge">{{ support_request.get_status_display }}</span>
+        <a href="{% url 'support_dashboard' %}" class="btn-back">← Назад</a>
+    </div>
+
+    <div class="request-info">
+        <div class="info-grid">
+            <div class="info-item">
+                <span class="info-label">👤 Клиент:</span>
+                <span class="info-value">{{ support_request.customer.username }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">📂 Категория:</span>
+                <span class="info-value">{{ support_request.get_category_display }}</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">📅 Создан:</span>
+                <span class="info-value">{{ support_request.created_at|date:"d.m.Y H:i" }}</span>
+            </div>
+            {% if support_request.support_staff %}
+                <div class="info-item">
+                    <span class="info-label">👨‍💻 Поддержка:</span>
+                    <span class="info-value">{{ support_request.support_staff.username }}</span>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" style="margin: 10px 25px;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="chat-messages">
+        {% if messages_list %}
+            {% for msg in messages_list %}
+                <div class="message {% if msg.is_from_support %}sent{% else %}received{% endif %}">
+                    <div class="message-bubble">
+                        {{ msg.message|linebreaksbr }}
+                    </div>
+                    <div class="message-meta">
+                        <span class="sender-name">{% if msg.is_from_support %}Поддержка{% else %}{{ msg.sender.username }}{% endif %}</span>
+                        <span>•</span>
+                        <span>{{ msg.created_at|date:"d.m.Y H:i" }}</span>
+                    </div>
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="empty-chat">
+                <div style="font-size: 3rem; margin-bottom: 15px;">💬</div>
+                <p>Начните диалог с клиентом</p>
+            </div>
+        {% endif %}
+    </div>
+
+    {% if support_request.status != 'closed' %}
+        <div class="chat-input-area">
+            <form method="post" action="{% url 'send_support_message' support_request.id %}" class="chat-form">
+                {% csrf_token %}
+                <textarea name="message" class="message-input" placeholder="Введите ваше сообщение..." rows="3" required></textarea>
+                <button type="submit" class="btn-send">
+                    📤 Отправить
+                </button>
+            </form>
+        </div>
+
+        <div class="status-selector">
+            <form method="post" action="{% url 'send_support_message' support_request.id %}" style="display: flex; gap: 10px; align-items: center;">
+                {% csrf_token %}
+                <input type="hidden" name="message" value="Статус запроса изменен.">
+                <label>Изменить статус:</label>
+                <select name="status" class="status-select">
+                    {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if value == support_request.status %}selected{% endif %}>
+                            {{ label }}
+                        </option>
+                    {% endfor %}
+                </select>
+                <button type="submit" class="btn-send" style="padding: 8px 16px; font-size: 0.85rem;">
+                    Обновить статус
+                </button>
+            </form>
+        </div>
+    {% else %}
+        <div class="closed-notice">
+            🔒 Запрос закрыт. Отправка сообщений недоступна.
+        </div>
+    {% endif %}
+</div>
+
+<script>
+    // Auto-scroll to bottom of messages
+    const chatMessages = document.querySelector('.chat-messages');
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+</script>
+{% endblock %}

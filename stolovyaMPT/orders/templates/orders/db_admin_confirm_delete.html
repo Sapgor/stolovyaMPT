@@ -1,0 +1,165 @@
+{% extends 'orders/base.html' %}
+
+{% block title %}Подтверждение удаления — Столовая МПТ{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        min-height: 100vh;
+    }
+
+    .background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 50% 50%, rgba(220, 38, 38, 0.1) 0%, transparent 40%);
+        z-index: -2;
+    }
+
+    .confirm-wrapper {
+        max-width: 450px;
+        margin: 0 auto;
+        padding: 20px;
+        min-height: 60vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .confirm-card {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 248, 240, 0.95) 100%);
+        border-radius: 24px;
+        padding: 40px;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.2);
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        animation: shake 0.5s ease-in-out;
+    }
+
+    .confirm-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #dc2626 0%, #ef4444 100%);
+    }
+
+    .warning-icon {
+        width: 90px;
+        height: 90px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        margin: 0 auto 25px;
+        animation: bounce 2s infinite;
+    }
+
+    .confirm-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #dc2626;
+        margin: 0 0 15px 0;
+    }
+
+    .confirm-object {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2d3748;
+        padding: 15px 20px;
+        background: #f7fafc;
+        border-radius: 12px;
+        margin-bottom: 25px;
+    }
+
+    .confirm-text {
+        color: #718096;
+        font-size: 0.95rem;
+        margin-bottom: 25px;
+    }
+
+    .confirm-actions {
+        display: flex;
+        gap: 12px;
+    }
+
+    .btn-delete, .btn-cancel {
+        flex: 1;
+        padding: 14px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        text-align: center;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-delete {
+        background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
+    }
+
+    .btn-delete:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(220, 38, 38, 0.5);
+    }
+
+    .btn-cancel {
+        background: #e2e8f0;
+        color: #4a5568;
+    }
+
+    .btn-cancel:hover {
+        background: #cbd5e0;
+    }
+
+    .main-card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+
+    @keyframes bounce {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+    }
+</style>
+
+<div class="confirm-wrapper">
+    <div class="confirm-card">
+        <div class="warning-icon">⚠️</div>
+        <h1 class="confirm-title">Подтвердите удаление</h1>
+        <div class="confirm-object">{{ obj }}</div>
+        <p class="confirm-text">Это действие нельзя отменить. Вы уверены?</p>
+
+        <form method="post">
+            {% csrf_token %}
+            <div class="confirm-actions">
+                <button type="submit" class="btn-delete">🗑️ Да, удалить</button>
+                <a href="{% url cancel_url %}" class="btn-cancel">❌ Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

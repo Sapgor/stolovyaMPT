@@ -1,0 +1,321 @@
+{% extends 'orders/base.html' %}
+
+{% block title %}{{ title }} — Админ БД — Столовая МПТ{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        min-height: 100vh;
+    }
+
+    .background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle at 70% 30%, rgba(255, 107, 53, 0.12) 0%, transparent 40%);
+        z-index: -2;
+    }
+
+    .form-wrapper {
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .form-card {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 248, 240, 0.95) 100%);
+        border-radius: 24px;
+        padding: 35px;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.2);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .form-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #ff6b35 0%, #f7931e 100%);
+    }
+
+    .form-header {
+        text-align: center;
+        margin-bottom: 30px;
+    }
+
+    .form-icon {
+        width: 70px;
+        height: 70px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin: 0 auto 15px;
+    }
+
+    .form-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #000000 !important;
+        margin: 0;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: #000000 !important;
+        font-weight: 600 !important;
+        font-size: 0.9rem;
+    }
+
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #000000 !important;
+        border-radius: 10px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #ffffff !important;
+        color: #000000 !important;
+        box-sizing: border-box;
+    }
+
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: #ff6b35;
+        box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+    }
+
+    .form-group input[type="file"] {
+        padding: 10px;
+    }
+
+    .current-image {
+        margin: 10px 0;
+        padding: 10px;
+        background: #f7fafc !important;
+        border-radius: 10px;
+        text-align: center;
+        color: #000000 !important;
+    }
+
+    .current-image img {
+        max-width: 200px;
+        border-radius: 8px;
+    }
+
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        margin-top: 25px;
+    }
+
+    .btn-save, .btn-cancel {
+        flex: 1;
+        padding: 14px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        border: none;
+        text-align: center;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-save {
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(255, 107, 53, 0.4);
+    }
+
+    .btn-save:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(255, 107, 53, 0.5);
+    }
+
+    .btn-cancel {
+        background: #e2e8f0 !important;
+        color: #000000 !important;
+        border: 2px solid #000000 !important;
+    }
+
+    .btn-cancel:hover {
+        background: #cbd5e0 !important;
+    }
+
+    .main-card {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+    }
+
+    .helptext {
+        display: block;
+        font-size: 0.8rem;
+        color: #000000 !important;
+        margin-top: 6px;
+    }
+
+    .errorlist {
+        list-style: none;
+        margin: 0 0 15px 0;
+        padding: 0;
+    }
+
+    .errorlist li {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border: 1px solid #fca5a5;
+        border-radius: 10px;
+        padding: 12px 16px;
+        color: #dc2626;
+        font-size: 0.9rem;
+    }
+
+    /* Светлая тема */
+    html[data-theme="light"] body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 50%, #d9dde2 100%);
+        min-height: 100vh;
+    }
+
+    html[data-theme="light"] .background {
+        background: radial-gradient(circle at 70% 30%, rgba(255, 107, 53, 0.06) 0%, transparent 40%);
+    }
+
+    html[data-theme="light"] .form-card {
+        background: linear-gradient(145deg, rgba(255, 255, 255, 0.98) 0%, rgba(255, 248, 240, 0.98) 100%);
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.08), 0 10px 30px rgba(0, 0, 0, 0.06);
+    }
+
+    html[data-theme="light"] .form-title {
+        color: #1a202c;
+    }
+
+    html[data-theme="light"] .form-group label {
+        color: #1a202c;
+    }
+
+    html[data-theme="light"] .form-group input,
+    html[data-theme="light"] .form-group select,
+    html[data-theme="light"] .form-group textarea {
+        background: #ffffff;
+        color: #000000;
+        border-color: #e2e8f0;
+    }
+
+    html[data-theme="light"] .form-group input:focus,
+    html[data-theme="light"] .form-group select:focus,
+    html[data-theme="light"] .form-group textarea:focus {
+        border-color: #ff6b35;
+        box-shadow: 0 0 0 4px rgba(255, 107, 53, 0.1);
+    }
+
+    html[data-theme="light"] .current-image {
+        background: #f7fafc;
+        color: #4a5568;
+    }
+
+    html[data-theme="light"] .btn-cancel {
+        background: #f7fafc;
+        color: #4a5568;
+        border: 1px solid #e2e8f0;
+    }
+
+    html[data-theme="light"] .btn-cancel:hover {
+        background: #edf2f7;
+    }
+
+    html[data-theme="light"] .helptext {
+        color: #718096;
+    }
+
+    /* Универсальные стили для гарантии черного текста */
+    .form-group * {
+        color: #000000 !important;
+    }
+
+    .form-group p {
+        color: #000000 !important;
+    }
+
+    .form-group span {
+        color: #000000 !important;
+    }
+
+    .form-group div {
+        color: #000000 !important;
+    }
+
+    /* Стили для всех элементов формы */
+    form p {
+        color: #000000 !important;
+    }
+
+    form label {
+        color: #000000 !important;
+    }
+
+    form input {
+        color: #000000 !important;
+    }
+
+    form select {
+        color: #000000 !important;
+    }
+
+    form textarea {
+        color: #000000 !important;
+    }
+
+    /* Стили для текста в полях загрузки файла */
+    input[type="file"] {
+        color: #000000 !important;
+    }
+
+    input[type="file"]::before {
+        color: #000000 !important;
+    }
+
+    input[type="file"]::after {
+        color: #000000 !important;
+    }
+</style>
+
+<div class="form-wrapper">
+    <div class="form-card">
+        <div class="form-header">
+            <div class="form-icon">🍽️</div>
+            <h1 class="form-title">{{ title }}</h1>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <div class="form-actions">
+                <button type="submit" class="btn-save">💾 Сохранить</button>
+                <a href="{% url 'db_admin_menu_items' %}" class="btn-cancel">❌ Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

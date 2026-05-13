@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html data-theme="dark">
+<head>
+    {% load static %}
+    <meta charset="utf-8">
+    <title>{% block title %}Stolovya MPT{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="{% static 'css/style.css' %}">
+    <script>
+        (function() {
+            var theme = localStorage.getItem('theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+        })();
+        function toggleTheme() {
+            var html = document.documentElement;
+            var current = html.getAttribute('data-theme') || 'dark';
+            var next = current === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        }
+    </script>
+</head>
+<body>
+    <div class="background"></div>
+
+    <div class="toast-container" id="toastContainer"></div>
+
+    <div class="container">
+        <div class="main-card">
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        var audioCtx = null;
+        function ensureAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+        function playTone(freq, type, duration, delay) {
+            ensureAudio();
+            var osc = audioCtx.createOscillator();
+            var gain = audioCtx.createGain();
+            osc.type = type || 'sine';
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + (delay || 0));
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime + (delay || 0));
+            gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (delay || 0) + duration);
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime + (delay || 0));
+            osc.stop(audioCtx.currentTime + (delay || 0) + duration);
+        }
+        window.playSound = function(kind) {
+            if (kind === 'success') {
+                playTone(523.25, 'sine', 0.15, 0);
+                playTone(659.25, 'sine', 0.2, 0.12);
+            } else if (kind === 'error') {
+                playTone(150, 'sawtooth', 0.3, 0);
+            } else if (kind === 'order') {
+                playTone(440, 'sine', 0.1, 0);
+                playTone(554, 'sine', 0.15, 0.1);
+                playTone(659, 'sine', 0.2, 0.2);
+            } else if (kind === 'click') {
+                playTone(800, 'sine', 0.05, 0);
+            }
+        };
+
+        function showToast(message, type) {
+            var container = document.getElementById('toastContainer');
+            var toast = document.createElement('div');
+            toast.className = 'toast toast-' + (type || 'info');
+            var icon = '';
+            if (type === 'success') icon = '<span class="toast-icon">\u2705</span>';
+            else if (type === 'error') icon = '<span class="toast-icon">\u26a0\ufe0f</span>';
+            else if (type === 'warning') icon = '<span class="toast-icon">\u26a0\ufe0f</span>';
+            else icon = '<span class="toast-icon">\u2139\ufe0f</span>';
+            toast.innerHTML = icon + '<span class="toast-msg">' + message + '</span>';
+            container.appendChild(toast);
+            requestAnimationFrame(function() {
+                toast.classList.add('show');
+            });
+            window.playSound(type === 'error' ? 'error' : (type === 'success' ? 'success' : 'click'));
+            setTimeout(function() {
+                toast.classList.remove('show');
+                toast.addEventListener('transitionend', function() {
+                    if (toast.parentNode) toast.parentNode.removeChild(toast);
+                });
+            }, 4000);
+        }
+        window.showToast = showToast;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            var messagesData = [];
+            {% if messages %}
+            {% for message in messages %}
+                messagesData.push({msg: "{{ message|escapejs }}", tags: "{{ message.tags|default:'info' }}"});
+            {% endfor %}
+            {% endif %}
+            messagesData.forEach(function(m, i) {
+                setTimeout(function() {
+                    var tag = m.tags;
+                    if (tag.indexOf('success') !== -1) showToast(m.msg, 'success');
+                    else if (tag.indexOf('error') !== -1) showToast(m.msg, 'error');
+                    else if (tag.indexOf('warning') !== -1) showToast(m.msg, 'warning');
+                    else showToast(m.msg, 'info');
+                }, i * 200);
+            });
+        });
+    })();
+    </script>
+</body>
+</html>

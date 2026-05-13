@@ -1,0 +1,583 @@
+{% extends 'orders/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    .favorites-page {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 24px;
+        position: relative;
+    }
+
+    /* Floating decorative hearts */
+    .floating-hearts {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+        z-index: 0;
+        overflow: hidden;
+    }
+
+    .heart-particle {
+        position: absolute;
+        font-size: 1.2rem;
+        opacity: 0.06;
+        animation: floatHeart 8s ease-in-out infinite;
+    }
+
+    .heart-particle:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; font-size: 1.5rem; }
+    .heart-particle:nth-child(2) { left: 85%; top: 15%; animation-delay: 1s; font-size: 1rem; }
+    .heart-particle:nth-child(3) { left: 70%; top: 60%; animation-delay: 2s; font-size: 1.3rem; }
+    .heart-particle:nth-child(4) { left: 25%; top: 75%; animation-delay: 3s; font-size: 0.9rem; }
+    .heart-particle:nth-child(5) { left: 50%; top: 40%; animation-delay: 4s; font-size: 1.1rem; }
+    .heart-particle:nth-child(6) { left: 5%; top: 50%; animation-delay: 5s; font-size: 1.4rem; }
+
+    @keyframes floatHeart {
+        0%, 100% { transform: translateY(0) rotate(-5deg); opacity: 0.06; }
+        50% { transform: translateY(-30px) rotate(5deg); opacity: 0.12; }
+    }
+
+    /* Header */
+    .favorites-header {
+        position: relative;
+        z-index: 1;
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(30px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        padding: 28px 32px;
+        margin-bottom: 32px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+    }
+
+    .header-left {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .heart-icon-wrap {
+        width: 56px;
+        height: 56px;
+        background: linear-gradient(135deg, #e53e3e 0%, #ff6b6b 100%);
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.8rem;
+        box-shadow: 0 8px 24px rgba(229, 62, 62, 0.35);
+        animation: heartbeat 2s ease-in-out infinite;
+    }
+
+    @keyframes heartbeat {
+        0%, 100% { transform: scale(1); }
+        14% { transform: scale(1.08); }
+        28% { transform: scale(1); }
+        42% { transform: scale(1.05); }
+        70% { transform: scale(1); }
+    }
+
+    .header-text h1 {
+        font-size: 2.2rem;
+        font-weight: 800;
+        margin: 0;
+        background: linear-gradient(135deg, #fff 0%, #ffd4d4 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        line-height: 1.2;
+    }
+
+    .header-text .subtitle {
+        font-size: 1rem;
+        color: rgba(255, 255, 255, 0.7);
+        margin: 6px 0 0 0;
+        font-weight: 500;
+    }
+
+    .favorites-count {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        background: rgba(229, 62, 62, 0.2);
+        border: 1px solid rgba(229, 62, 62, 0.3);
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: #ff6b6b;
+        backdrop-filter: blur(10px);
+    }
+
+    .favorites-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .favorites-actions a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 12px;
+        color: rgba(255, 255, 255, 0.85);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 0.95rem;
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .favorites-actions a:hover {
+        background: rgba(255, 255, 255, 0.14);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        border-color: rgba(255, 255, 255, 0.25);
+    }
+
+    /* Grid */
+    .favorites-grid {
+        position: relative;
+        z-index: 1;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+        gap: 26px;
+    }
+
+    /* Card */
+    .favorite-card {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 24px;
+        overflow: hidden;
+        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        position: relative;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+    }
+
+    .favorite-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #e53e3e, #ff6b6b, #e53e3e);
+        opacity: 0;
+        transition: opacity 0.4s ease;
+    }
+
+    .favorite-card:hover {
+        transform: translateY(-8px) scale(1.01);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.18), 0 0 0 1px rgba(255, 255, 255, 0.06);
+        border-color: rgba(255, 107, 53, 0.25);
+    }
+
+    .favorite-card:hover::before {
+        opacity: 1;
+    }
+
+    .card-image-wrapper {
+        width: 100%;
+        height: 190px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .card-image-wrapper::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 50%;
+        background: linear-gradient(to top, rgba(0,0,0,0.3), transparent);
+        pointer-events: none;
+    }
+
+    .card-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .favorite-card:hover .card-image {
+        transform: scale(1.1);
+    }
+
+    .card-no-image {
+        width: 100%;
+        height: 190px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 4.5rem;
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.04) 0%, rgba(255, 255, 255, 0.08) 100%);
+    }
+
+    .heart-overlay {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        width: 40px;
+        height: 40px;
+        background: rgba(229, 62, 62, 0.85);
+        backdrop-filter: blur(10px);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.1rem;
+        box-shadow: 0 4px 16px rgba(229, 62, 62, 0.4);
+        z-index: 2;
+        animation: heartbeat 2s ease-in-out infinite;
+    }
+
+    .card-content {
+        padding: 22px;
+    }
+
+    .card-title {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0 0 10px 0;
+        color: rgba(255, 255, 255, 0.95);
+        font-family: 'Inter', sans-serif;
+        line-height: 1.3;
+    }
+
+    .card-description {
+        color: rgba(255, 255, 255, 0.6);
+        font-size: 0.95rem;
+        margin: 0 0 18px 0;
+        line-height: 1.5;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .card-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .card-price {
+        font-size: 1.35rem;
+        font-weight: 800;
+        color: #ff6b35;
+        font-family: 'Inter', sans-serif;
+    }
+
+    .card-stock {
+        font-size: 0.85rem;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 8px;
+        background: rgba(72, 187, 120, 0.12);
+        color: #48bb78;
+    }
+
+    .card-stock.low {
+        background: rgba(237, 137, 54, 0.12);
+        color: #ed8936;
+    }
+
+    .card-stock.out {
+        background: rgba(229, 62, 62, 0.12);
+        color: #e53e3e;
+    }
+
+    .card-actions {
+        display: flex;
+        gap: 10px;
+    }
+
+    .btn-unfavorite {
+        flex: 1;
+        padding: 12px 16px;
+        background: rgba(229, 62, 62, 0.12);
+        color: #ff6b6b;
+        border: 1px solid rgba(229, 62, 62, 0.25);
+        border-radius: 12px;
+        font-weight: 600;
+        font-size: 0.95rem;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.3s ease;
+    }
+
+    .btn-unfavorite:hover {
+        background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+        color: white;
+        border-color: transparent;
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(229, 62, 62, 0.35);
+    }
+
+    .btn-order-small {
+        flex: 1;
+        padding: 12px 16px;
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        font-family: 'Inter', sans-serif;
+        cursor: pointer;
+        text-align: center;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(72, 187, 120, 0.3);
+    }
+
+    .btn-order-small:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(72, 187, 120, 0.4);
+    }
+
+    .btn-order-small.disabled {
+        background: rgba(160, 174, 192, 0.3);
+        cursor: not-allowed;
+        box-shadow: none;
+        pointer-events: none;
+    }
+
+    /* Empty state */
+    .empty-favorites {
+        position: relative;
+        z-index: 1;
+        text-align: center;
+        padding: 100px 20px;
+        background: rgba(255, 255, 255, 0.04);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 24px;
+    }
+
+    .empty-heart {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto 28px;
+        background: linear-gradient(135deg, rgba(229, 62, 62, 0.15) 0%, rgba(255, 107, 107, 0.1) 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 3rem;
+        animation: heartbeat 2s ease-in-out infinite;
+        border: 1px solid rgba(229, 62, 62, 0.15);
+    }
+
+    .empty-title {
+        font-size: 1.7rem;
+        font-weight: 700;
+        margin: 0 0 10px 0;
+        color: rgba(255, 255, 255, 0.8);
+    }
+
+    .empty-text {
+        font-size: 1.1rem;
+        margin: 0 0 30px 0;
+        color: rgba(255, 255, 255, 0.55);
+        line-height: 1.5;
+    }
+
+    .btn-to-menu {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 14px 28px;
+        background: linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);
+        color: white;
+        border: none;
+        border-radius: 14px;
+        font-weight: 700;
+        font-size: 1rem;
+        font-family: 'Inter', sans-serif;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        box-shadow: 0 6px 24px rgba(255, 107, 53, 0.35);
+    }
+
+    .btn-to-menu:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 32px rgba(255, 107, 53, 0.45);
+    }
+
+    @keyframes fadeInUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .favorite-card {
+        animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards;
+    }
+
+    .favorite-card:nth-child(1) { animation-delay: 0.05s; }
+    .favorite-card:nth-child(2) { animation-delay: 0.1s; }
+    .favorite-card:nth-child(3) { animation-delay: 0.15s; }
+    .favorite-card:nth-child(4) { animation-delay: 0.2s; }
+    .favorite-card:nth-child(5) { animation-delay: 0.25s; }
+    .favorite-card:nth-child(6) { animation-delay: 0.3s; }
+
+    /* Light theme */
+    html[data-theme="light"] .favorites-header {
+        background: rgba(255, 255, 255, 0.85);
+        border-color: rgba(0, 0, 0, 0.08);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    }
+
+    html[data-theme="light"] .header-text h1 {
+        background: linear-gradient(135deg, #1a202c 0%, #e53e3e 100%);
+        -webkit-background-clip: text;
+        background-clip: text;
+    }
+
+    html[data-theme="light"] .header-text .subtitle {
+        color: #4a5568;
+    }
+
+    html[data-theme="light"] .favorites-actions a {
+        background: rgba(255, 255, 255, 0.8);
+        border-color: rgba(0, 0, 0, 0.06);
+        color: #2d3748;
+    }
+
+    html[data-theme="light"] .favorites-actions a:hover {
+        background: rgba(255, 255, 255, 1);
+    }
+
+    html[data-theme="light"] .favorite-card {
+        background: linear-gradient(145deg, rgba(255,255,255,0.98) 0%, rgba(255,248,240,0.98) 100%);
+        border-color: rgba(0, 0, 0, 0.08);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+    }
+
+    html[data-theme="light"] .favorite-card:hover {
+        border-color: rgba(255, 107, 53, 0.25);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.12);
+    }
+
+    html[data-theme="light"] .card-title { color: #1a202c; }
+    html[data-theme="light"] .card-description { color: #4a5568; }
+    html[data-theme="light"] .card-meta { border-color: rgba(0,0,0,0.05); }
+    html[data-theme="light"] .card-no-image { background: #f7fafc; }
+
+    html[data-theme="light"] .empty-favorites {
+        background: rgba(255, 255, 255, 0.85);
+        border-color: rgba(0, 0, 0, 0.08);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+    }
+
+    html[data-theme="light"] .empty-title { color: #1a202c; }
+    html[data-theme="light"] .empty-text { color: #4a5568; }
+</style>
+
+<!-- Floating decorative hearts in background -->
+<div class="floating-hearts">
+    <span class="heart-particle">❤️</span>
+    <span class="heart-particle">💖</span>
+    <span class="heart-particle">💕</span>
+    <span class="heart-particle">❤️</span>
+    <span class="heart-particle">💗</span>
+    <span class="heart-particle">💖</span>
+</div>
+
+<div class="favorites-page">
+    <div class="favorites-header">
+        <div class="header-left">
+            <div class="heart-icon-wrap">❤️</div>
+            <div class="header-text">
+                <h1>Избранное</h1>
+                <p class="subtitle">Ваши любимые блюда в одном месте</p>
+            </div>
+            {% if items %}
+                <span class="favorites-count">{{ items|length }} позиций</span>
+            {% endif %}
+        </div>
+        <div class="favorites-actions">
+            <a href="{% url 'menu' %}">🍽️ В меню</a>
+            <a href="{% url 'orders' %}">📋 Мои заказы</a>
+        </div>
+    </div>
+
+    {% if items %}
+        <div class="favorites-grid">
+            {% for item in items %}
+                <div class="favorite-card">
+                    <div class="heart-overlay">❤️</div>
+                    {% if item.image %}
+                        <div class="card-image-wrapper">
+                            <img src="{{ item.image.url }}" alt="{{ item.name }}" class="card-image">
+                        </div>
+                    {% else %}
+                        <div class="card-no-image">🍽️</div>
+                    {% endif %}
+
+                    <div class="card-content">
+                        <h3 class="card-title">{{ item.name }}</h3>
+                        <p class="card-description">{{ item.description }}</p>
+
+                        <div class="card-meta">
+                            <span class="card-price">{{ item.price }} ₽</span>
+                            <span class="card-stock {% if item.stock == 0 %}out{% elif item.stock < 10 %}low{% endif %}">
+                                {% if item.stock == 0 %}❌ Нет в наличии
+                                {% elif item.stock < 10 %}⚠️ Осталось мало
+                                {% else %}✅ В наличии
+                                {% endif %}
+                            </span>
+                        </div>
+
+                        <div class="card-actions">
+                            <a href="{% url 'toggle_favorite' item.id %}" class="btn-unfavorite">💔 Убрать</a>
+                            {% if item.stock > 0 %}
+                                <a href="{% url 'menu' %}" class="btn-order-small">🛒 Заказать</a>
+                            {% else %}
+                                <span class="btn-order-small disabled">❌ Нет</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-favorites">
+            <div class="empty-heart">💔</div>
+            <h2 class="empty-title">Пока пусто</h2>
+            <p class="empty-text">Добавляйте блюда в избранное — они появятся здесь</p>
+            <a href="{% url 'menu' %}" class="btn-to-menu">🍽️ Перейти в меню</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
